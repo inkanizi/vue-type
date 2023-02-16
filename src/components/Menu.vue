@@ -1,23 +1,57 @@
 <script>
-export default {};
+export default {
+  data() {
+    return {
+      mode: {
+        time: false,
+        words: true,
+      },
+    };
+  },
+  methods: {
+    //для переключеня режимов скорее всего нужен глобальный стейт
+    setModeTime() {
+      this.mode = {
+        time: true,
+        words: false,
+      };
+    },
+    setModeWords() {
+      this.mode = {
+        time: false,
+        words: true,
+      };
+    },
+  },
+};
 </script>
 
 <template>
   <div class="menu">
     <div class="menu-mode">
-      <div class="menu-mode_item">
+      <div class="menu-mode_item" @click="setModeTime">
         <font-awesome-icon icon="fa-regular fa-clock" color="#ec4528" />
         <span>time</span>
       </div>
-      <div class="menu-mode_item">
+      <div class="menu-mode_item" @click="setModeWords">
         <font-awesome-icon icon="fa-solid fa-font" color="#ec4528" />
         <span>words</span>
       </div>
     </div>
     <div class="menu-separator"></div>
     <div class="menu-settings">
-      <span>10</span>
-      <span>20</span>
+      <template v-if="mode.words">
+        <span>10</span>
+        <span>20</span>
+        <span>50</span>
+        <span>100</span>
+      </template>
+      <template v-if="mode.time">
+        <span>15</span>
+        <span>30</span>
+        <span>45</span>
+        <span>60</span>
+      </template>
     </div>
   </div>
 </template>
@@ -45,7 +79,8 @@ export default {};
     width: 250px;
     align-items: center;
     justify-content: space-around;
-
+    cursor: pointer;
+    
     &_item {
       display: flex;
       align-items: center;

@@ -3,7 +3,7 @@ export default {
   props: {
     wpm: Number,
     countCorrectWords: Number,
-    time: Date,
+    time: Number,
     accurancy: Number,
   },
   emits: ["restart"],

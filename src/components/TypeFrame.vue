@@ -12,21 +12,23 @@ export default {
       text: "",
       currentWord: 0,
       currentLetter: 0,
-      keyEvent: {}, //для передачи event с клавиатуры в событие инпута
-      countCorrectWords: 0,
-      wpm: computed(() =>
-        Math.floor(this.countCorrectWords / (this.time / 60))
-      ),
       accurancy: 0,
-      time: computed(() => Math.floor((this.date2 - this.date1) / 1000)),
-      isEnd: computed(() => this.currentWord == this.words.length),
+      countCorrectWords: 0,
       isStart: false,
       date1: null,
       date2: null,
+      keyEvent: {}, //для передачи event с клавиатуры в событие инпута
+      showCounter: true, // чтобы высоты не скакала
+      wpm: computed(() =>
+        Math.floor(this.countCorrectWords / (this.time / 60))
+      ),
+      time: computed(() => Math.floor((this.date2 - this.date1) / 1000)),
+      isEnd: computed(() => this.currentWord == this.words.length),
     };
   },
   mounted() {
     this.shuffle();
+    this.words[0].letters[0].class = " caret_first";
   },
   watch: {
     isEnd() {
@@ -81,6 +83,7 @@ export default {
       });
 
       this.shuffle();
+      this.words[0].letters[0].class = " caret_first";
     },
     //Пермешивание массива
     shuffle() {
@@ -116,7 +119,7 @@ export default {
 
       if (this.keyEvent.code === "Backspace") {
         this.words[this.currentWord].letters[this.currentLetter - 1].class = "";
-        this.words[this.currentWord].letters[this.currentLetter].class = "";
+        word ? (word.class = "") : null;
         this.currentLetter--;
       } else if (input.length > this.words[this.currentWord].text.length) {
         //если буква больше чем есть в слове то надо это прерывать
@@ -152,8 +155,8 @@ export default {
 <template>
   <div class="typeframe">
     <template v-if="!isEnd">
-      <div v-if="isStart" class="typeframe-counter">
-        {{ countCorrectWords }}/{{ words.length }}
+      <div class="typeframe-counter">
+        <div v-show="isStart">{{ countCorrectWords }}/{{ words.length }}</div>
       </div>
       <div class="typeframe-words" ref="wordsRef">
         <span
@@ -196,15 +199,41 @@ export default {
 
 <style lang="scss" scoped>
 .word {
+  position: relative;
   padding-left: 10px;
   font-size: 24px;
 }
 
 span.caret {
+  &_first {
+    &::before {
+      content: "";
+      width: 2px;
+      top: 6px;
+      height: 26px;
+      background-color: #ec5028;
+      position: absolute;
+      animation: next 1s infinite;
+      animation-direction: alternate;
+    }
+
+    @keyframes next {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+  }
+
   &::before {
-    content: "|";
+    content: "";
+    width: 2px;
+    top: 6px;
+    height: 26px;
+    background-color: #ec5028;
     position: absolute;
-    transition: all ease-in 0.2s;
   }
 }
 
@@ -242,6 +271,7 @@ span.incorrectLetter {
   &-counter {
     color: #ec5028;
     font-size: 20px;
+    height: 20px;
   }
 
   &-words {

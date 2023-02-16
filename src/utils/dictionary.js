@@ -1,17 +1,40 @@
-//можно сократить запись до просто объекта с текстом
-// и потом сувать в него всё остальное
-const words = [
-  { text: "забыть", class: "inactiveWord", letters: [] },
-  { text: "сказать", class: "inactiveWord", letters: [] },
-  { text: "мыло", class: "inactiveWord", letters: [] },
-  { text: "тест", class: "inactiveWord", letters: [] },
-  { text: "на", class: "inactiveWord", letters: [] },
-  { text: "гречка", class: "inactiveWord", letters: [] },
-  { text: "коньки", class: "inactiveWord", letters: [] },
-  { text: "быть", class: "inactiveWord", letters: [] },
-  { text: "здесь", class: "inactiveWord", letters: [] },
-  { text: "там", class: "inactiveWord", letters: [] },
+const dictonary = [
+  "свой",
+  "жить",
+  "страна",
+  "сделать",
+  "даже",
+  "почти",
+  "чтобы",
+  "дверь",
+  "осел",
+  "взять",
+  "более",
+  "над",
+  "она",
+  "какой",
+  "куда",
+  "старый",
+  "сразу",
 ];
+
+const words = [];
+
+const take = (array, count) => {
+  let newArray = [];
+  for (let i = 0; i < count; i++) {
+    newArray.push(array.splice(Math.floor(Math.random() * array.length), 1)[0]);
+  }
+  return newArray;
+};
+
+take(dictonary, 10).forEach((item, index) => {
+  words.push({
+    text: item,
+    class: "inactiveWord",
+    letters: [],
+  });
+});
 
 words.forEach((word, index) => {
   let splitLetter = word.text.split("");
