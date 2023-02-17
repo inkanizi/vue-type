@@ -34,8 +34,6 @@ export default {
     isEnd() {
       if (this.isEnd === true) {
         this.date2 = new Date();
-        console.log(this.date2 / 1000);
-        console.log(this.date1 / 1000);
       }
     },
     //каретка
@@ -84,6 +82,10 @@ export default {
 
       this.shuffle();
       this.words[0].letters[0].class = " caret_first";
+
+      setTimeout(() => {
+        this.$refs.focusRef.focus();
+      }, 150);
     },
     //Пермешивание массива
     shuffle() {
@@ -135,17 +137,12 @@ export default {
       }
     },
     focusImport() {
-      //тут выдает ошибку, потому что когда нету инпута ему некуда дать класс
       let input = this.$refs.focusRef;
       let isFocused = document.activeElement === input;
-      try {
-        if (!isFocused) {
-          this.$refs.wordsRef.classList.add("blur");
-        } else if (isFocused) {
-          this.$refs.wordsRef.classList.remove("blur");
-        }
-      } catch {
-        console.log("не видно инпут");
+      if (!isFocused && this.$refs.wordsRef) {
+        this.$refs.wordsRef.classList.add("blur");
+      } else if (isFocused) {
+        this.$refs.wordsRef.classList.remove("blur");
       }
     },
   },
@@ -236,7 +233,6 @@ span.caret {
     position: absolute;
   }
 }
-
 span.correctWord {
   color: white !important ;
 }
@@ -246,7 +242,6 @@ span.inactiveWord {
 span.incorrectWord {
   color: rgb(183, 241, 8) !important;
 }
-
 span.correctLetter {
   color: #ec5028;
 }
@@ -256,9 +251,8 @@ span.incorrectLetter {
 .blur {
   filter: blur(2px);
 }
-
 .typeframe {
-  margin-top: 200px;
+  margin-top: 150px;
   border-radius: 15px;
   width: 700px;
   height: 200px;
