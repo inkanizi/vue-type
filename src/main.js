@@ -1,5 +1,6 @@
 import { createApp } from "vue";
 import App from "./App.vue";
+import { createPinia } from "pinia";
 
 import "./assets/main.css";
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -14,4 +15,13 @@ import { faGithub } from "@fortawesome/free-brands-svg-icons";
 
 library.add(faClock, faFont, faArrowsRotate, faGear, faGithub);
 
-createApp(App).component("font-awesome-icon", FontAwesomeIcon).mount("#app");
+const pinia = createPinia();
+const app = createApp(App)
+
+// createApp(App).component("font-awesome-icon", FontAwesomeIcon).mount("#app");
+// app.use(pinia);
+
+app.component("font-awesome-icon", FontAwesomeIcon)
+app.use(pinia);
+app.mount("#app");
+

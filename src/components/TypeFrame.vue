@@ -1,6 +1,5 @@
 <script>
 import words from "../utils/dictionary";
-import { computed } from "vue";
 import Result from "./Result.vue";
 export default {
   components: {
@@ -19,18 +18,27 @@ export default {
       date2: null,
       keyEvent: {}, //для передачи event с клавиатуры в событие инпута
       showCounter: true, // чтобы высоты не скакала
-      wpm: computed(() =>
-        Math.floor(this.countCorrectWords / (this.time / 60))
-      ),
-      time: computed(() => Math.floor((this.date2 - this.date1) / 1000)),
-      isEnd: computed(() => this.currentWord == this.words.length),
     };
   },
   mounted() {
     this.shuffle();
     this.words[0].letters[0].class = " caret_first";
   },
+  computed: {
+    wpm() {
+      return Math.floor(this.countCorrectWords / (this.time / 60));
+    },
+    time() {
+      return Math.floor((this.date2 - this.date1) / 1000);
+    },
+    isEnd() {
+      return this.currentWord == this.words.length;
+    },
+  },
   watch: {
+    //При смене режима остается класс с кареткой,
+    // можно повесить ватч и просто сбрасывать его при изменении
+
     isEnd() {
       if (this.isEnd === true) {
         this.date2 = new Date();

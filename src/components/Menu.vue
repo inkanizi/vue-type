@@ -1,27 +1,20 @@
 <script>
+import { mapActions, mapState } from "pinia";
+import { useModeStore } from "../store/mode";
+
 export default {
   data() {
     return {
-      mode: {
-        time: false,
-        words: true,
-      },
     };
   },
+  computed: {
+    ...mapState(useModeStore, ["mode"]),
+    ...mapState(useModeStore, {
+      modeStore: "mode",
+    }),
+  },
   methods: {
-    //для переключеня режимов скорее всего нужен глобальный стейт
-    setModeTime() {
-      this.mode = {
-        time: true,
-        words: false,
-      };
-    },
-    setModeWords() {
-      this.mode = {
-        time: false,
-        words: true,
-      };
-    },
+    ...mapActions(useModeStore, ["setTimeMode", "setWordsMode"]),
   },
 };
 </script>
@@ -29,24 +22,24 @@ export default {
 <template>
   <div class="menu">
     <div class="menu-mode">
-      <div class="menu-mode_item" @click="setModeTime">
+      <div class="menu-mode_item" @click="setTimeMode">
         <font-awesome-icon icon="fa-regular fa-clock" color="#ec4528" />
         <span>time</span>
       </div>
-      <div class="menu-mode_item" @click="setModeWords">
+      <div class="menu-mode_item" @click="setWordsMode">
         <font-awesome-icon icon="fa-solid fa-font" color="#ec4528" />
         <span>words</span>
       </div>
     </div>
     <div class="menu-separator"></div>
     <div class="menu-settings">
-      <template v-if="mode.words">
+      <template v-if="this.mode == 'words'">
         <span>10</span>
         <span>20</span>
         <span>50</span>
         <span>100</span>
       </template>
-      <template v-if="mode.time">
+      <template v-if="this.mode == 'time'">
         <span>15</span>
         <span>30</span>
         <span>45</span>
@@ -80,7 +73,7 @@ export default {
     align-items: center;
     justify-content: space-around;
     cursor: pointer;
-    
+
     &_item {
       display: flex;
       align-items: center;

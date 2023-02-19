@@ -6,7 +6,7 @@ export default {};
   <div class="footer">
     <div>
       <font-awesome-icon color="#ec5028" icon="fa-brands fa-github" />
-      <a>GitHub</a>
+      <a href="https://github.com/inkanizi/vue-type">GitHub</a>
     </div>
   </div>
 </template>
@@ -23,6 +23,8 @@ export default {};
   justify-content: center;
   a {
     padding-left: 5px;
+    text-decoration: none;
+    color: #ec5028;
   }
 }
 </style>
