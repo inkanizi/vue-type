@@ -7,27 +7,41 @@ export default {
     accurancy: Number,
   },
   emits: ["restart"],
+  data() {
+    return {
+      stats: [
+        {
+          title: "wpm",
+          value: this.wpm,
+        },
+        {
+          title: "words",
+          value: this.countCorrectWords,
+        },
+        {
+          title: "time",
+          value: this.time,
+        },
+        {
+          title: "acc",
+          value: this.accurancy,
+        },
+      ],
+    };
+  },
 };
 </script>
 
 <template>
   <div class="result">
     <div class="result-stats">
-      <div class="result-stats_item">
-        <h2>{{ wpm }}</h2>
-        <span>wpm</span>
-      </div>
-      <div class="result-stats_item">
-        <h2>{{ countCorrectWords }}</h2>
-        <span>words</span>
-      </div>
-      <div class="result-stats_item">
-        <h2>{{ time }}</h2>
-        <span>time</span>
-      </div>
-      <div class="result-stats_item">
-        <h2>{{ accurancy }}</h2>
-        <span>acc</span>
+      <div
+        v-for="(stat, index) in stats"
+        :key="index"
+        class="result-stats_item"
+      >
+        <h2>{{ stat.value }}</h2>
+        <span>{{ stat.title }}</span>
       </div>
     </div>
     <button @click="$emit('restart')" class="result-btn_restart">
@@ -37,6 +51,10 @@ export default {
         size="2x"
       />
     </button>
+    <div class="result-shortcut">
+      <kbd>Tab + Enter</kbd>
+      <span>restart</span>
+    </div>
   </div>
 </template>
 
@@ -70,6 +88,21 @@ export default {
       padding: 5px 15px;
       border-radius: 5px;
       font-size: 20px;
+    }
+  }
+  &-shortcut {
+    margin: 20px 0 0 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    span{
+      font-size: 16px;
+    }
+    kbd {
+      background-color: #23272e;
+      padding: 5px;
+      border-radius: 5px;
+      font-size: 14px;
     }
   }
 }

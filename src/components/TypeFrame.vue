@@ -1,6 +1,7 @@
 <script>
 import words from "../utils/dictionary";
 import Result from "./Result.vue";
+import { nextTick } from "vue";
 export default {
   components: {
     Result,
@@ -22,6 +23,13 @@ export default {
   },
   mounted() {
     this.shuffle();
+    //Зануление повторяется, можно выделить в отдельную функцию
+    this.words.forEach((word) => {
+      word.class = "inactiveWord";
+      word.letters.forEach((lets) => {
+        lets.class = "";
+      });
+    });
     this.words[0].letters[0].class = " caret_first";
   },
   computed: {
@@ -32,7 +40,7 @@ export default {
       return Math.floor((this.date2 - this.date1) / 1000);
     },
     isEnd() {
-      return this.currentWord == this.words.length;
+      return this.currentWord === this.words.length;
     },
   },
   watch: {
@@ -63,7 +71,7 @@ export default {
         return false;
       };
     },
-    restart() {
+    async restart() {
       this.currentWord = 0;
       this.currentLetter = 0;
       this.countCorrectWords = 0;
@@ -91,9 +99,9 @@ export default {
       this.shuffle();
       this.words[0].letters[0].class = " caret_first";
 
-      setTimeout(() => {
-        this.$refs.focusRef.focus();
-      }, 150);
+      //Решает проблему с фокусом в инпут
+      await nextTick();
+      this.$refs.focusRef.focus();
     },
     //Пермешивание массива
     shuffle() {
@@ -203,13 +211,17 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+p {
+  color: red;
+  padding-left: 200px;
+}
 .word {
   position: relative;
   padding-left: 10px;
   font-size: 24px;
 }
-
-span.caret {
+//убрать спан, и использовать только классы
+.caret {
   &_first {
     &::before {
       content: "";
@@ -241,19 +253,19 @@ span.caret {
     position: absolute;
   }
 }
-span.correctWord {
+.correctWord {
   color: white !important ;
 }
-span.inactiveWord {
+.inactiveWord {
   color: gray;
 }
-span.incorrectWord {
+.incorrectWord {
   color: rgb(183, 241, 8) !important;
 }
-span.correctLetter {
+.correctLetter {
   color: #ec5028;
 }
-span.incorrectLetter {
+.incorrectLetter {
   color: rgb(234, 255, 0);
 }
 .blur {

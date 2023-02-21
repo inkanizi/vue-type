@@ -5,6 +5,8 @@ import { useModeStore } from "../store/mode";
 export default {
   data() {
     return {
+      wordsParam: [10, 20, 50, 100],
+      timeParam: [15, 30, 45, 60],
     };
   },
   computed: {
@@ -14,7 +16,11 @@ export default {
     }),
   },
   methods: {
-    ...mapActions(useModeStore, ["setTimeMode", "setWordsMode"]),
+    ...mapActions(useModeStore, [
+      "setTimeMode",
+      "setWordsMode",
+      "setWordsCount",
+    ]),
   },
 };
 </script>
@@ -31,19 +37,19 @@ export default {
         <span>words</span>
       </div>
     </div>
-    <div class="menu-separator"></div>
     <div class="menu-settings">
       <template v-if="this.mode == 'words'">
-        <span>10</span>
-        <span>20</span>
-        <span>50</span>
-        <span>100</span>
+        <span
+          v-for="(param, index) in wordsParam"
+          :key="index"
+          @click="setWordsCount(param)"
+          >{{ param }}</span
+        >
       </template>
       <template v-if="this.mode == 'time'">
-        <span>15</span>
-        <span>30</span>
-        <span>45</span>
-        <span>60</span>
+        <span v-for="(param, index) in timeParam" :key="index">{{
+          param
+        }}</span>
       </template>
     </div>
   </div>
@@ -51,33 +57,43 @@ export default {
 
 <style lang="scss" scoped>
 .menu {
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #ec4528;
-  width: 100%;
-  margin-top: 100px;
-  height: 40px;
-  background: #313641;
-  border-radius: 5px;
+  // Позиционирование
+
+  // Блочная модель
   display: flex;
   align-items: center;
   justify-content: space-around;
-  &-separator {
-    width: 5px;
-    height: 25px;
-    background: #3f4553;
-    border-radius: 20px;
-  }
+  width: 100%;
+  margin: 100px 0 0 0;
+  height: 40px;
+  // Типографика
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  // Оформление
+  color: #ec4528;
+  background: #313641;
+  border-radius: 5px;
+
   &-mode {
     display: flex;
     width: 250px;
     align-items: center;
     justify-content: space-around;
     cursor: pointer;
+    &::after {
+      content: "";
+      position: relative;
+      left: 25%;
+      width: 5px;
+      height: 25px;
+      background: #3f4553;
+      border-radius: 20px;
+    }
 
     &_item {
       display: flex;
       align-items: center;
       justify-content: center;
+      cursor: pointer;
       span {
         padding-left: 5px;
       }

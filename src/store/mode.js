@@ -8,11 +8,13 @@ export const useModeStore = defineStore("mode", {
   actions: {
     setTimeMode() {
       this.mode = "time";
-      console.log(this.mode);
     },
     setWordsMode() {
       this.mode = "words";
-      console.log(this.mode);
+    },
+    setWordsCount(num) {
+      this.wordsCount = num;
+      console.log(this.wordsCount);
     },
   },
 });
