@@ -2,6 +2,9 @@
 import words from "../utils/dictionary";
 import Result from "./Result.vue";
 import { nextTick } from "vue";
+import { take } from "../utils/dictionary";
+import { mapState } from "pinia";
+import { useModeStore } from "../store/mode";
 export default {
   components: {
     Result,
@@ -23,14 +26,8 @@ export default {
   },
   mounted() {
     this.shuffle();
-    //Зануление повторяется, можно выделить в отдельную функцию
-    this.words.forEach((word) => {
-      word.class = "inactiveWord";
-      word.letters.forEach((lets) => {
-        lets.class = "";
-      });
-    });
-    this.words[0].letters[0].class = " caret_first";
+    this.words = take(words, this.wordsCount);
+    this.clearClasses();
   },
   computed: {
     wpm() {
@@ -42,18 +39,23 @@ export default {
     isEnd() {
       return this.currentWord === this.words.length;
     },
+    ...mapState(useModeStore, ["wordsCount"]),
+    ...mapState(useModeStore, {
+      modeStore: "mode",
+    }),
   },
   watch: {
-    //При смене режима остается класс с кареткой,
-    // можно повесить ватч и просто сбрасывать его при изменении
-
+    wordsCount() {
+      this.words = take(words, this.wordsCount);
+      this.clearClasses();
+    },
     isEnd() {
       if (this.isEnd === true) {
         this.date2 = new Date();
       }
     },
     //каретка
-    currentLetter(newVal, oldVal) {
+    currentLetter(oldVal) {
       try {
         let word = this.words[this.currentWord];
         word.letters[this.currentLetter] &&
@@ -87,17 +89,9 @@ export default {
           return false;
         };
       };
-
-      //зануление классов
-      this.words.forEach((word) => {
-        word.class = "inactiveWord";
-        word.letters.forEach((lets) => {
-          lets.class = "";
-        });
-      });
-
+      this.words = take(words, this.wordsCount);
       this.shuffle();
-      this.words[0].letters[0].class = " caret_first";
+      this.clearClasses();
 
       //Решает проблему с фокусом в инпут
       await nextTick();
@@ -160,6 +154,16 @@ export default {
       } else if (isFocused) {
         this.$refs.wordsRef.classList.remove("blur");
       }
+    },
+    //зануление классов
+    clearClasses() {
+      this.words.forEach((word) => {
+        word.class = "inactiveWord";
+        word.letters.forEach((lets) => {
+          lets.class = "";
+        });
+      });
+      this.words[0].letters[0].class = " caret_first";
     },
   },
 };

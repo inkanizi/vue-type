@@ -93,9 +93,10 @@ export default {
       display: flex;
       align-items: center;
       justify-content: center;
-      cursor: pointer;
+
       span {
         padding-left: 5px;
+        cursor: pointer;
       }
     }
   }
@@ -104,6 +105,7 @@ export default {
     display: flex;
     align-items: center;
     justify-content: space-around;
+    cursor: pointer;
   }
 }
 </style>
