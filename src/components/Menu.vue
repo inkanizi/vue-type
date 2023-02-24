@@ -7,10 +7,20 @@ export default {
     return {
       wordsParam: [10, 20, 50, 100],
       timeParam: [15, 30, 45, 60],
+      modesParam: [
+        {
+          title: "time",
+          icon: "fa-regular fa-clock",
+        },
+        {
+          title: "words",
+          icon: "fa-solid fa-font",
+        },
+      ],
     };
   },
   computed: {
-    ...mapState(useModeStore, ["mode"]),
+    ...mapState(useModeStore, ["mode", "wordsCount", "timeCount"]),
     ...mapState(useModeStore, {
       modeStore: "mode",
     }),
@@ -20,7 +30,15 @@ export default {
       "setTimeMode",
       "setWordsMode",
       "setWordsCount",
+      "setTimeCount",
     ]),
+    setMode(mode) {
+      if (mode === "words") {
+        this.setWordsMode();
+      } else if (mode === "time") {
+        this.setTimeMode();
+      }
+    },
   },
 };
 </script>
@@ -28,34 +46,47 @@ export default {
 <template>
   <div class="menu">
     <div class="menu-mode">
-      <div class="menu-mode_item" @click="setTimeMode">
-        <font-awesome-icon icon="fa-regular fa-clock" color="#ec4528" />
-        <span>time</span>
-      </div>
-      <div class="menu-mode_item" @click="setWordsMode">
-        <font-awesome-icon icon="fa-solid fa-font" color="#ec4528" />
-        <span>words</span>
+      <div
+        class="menu-mode_item"
+        v-for="(param, index) in modesParam"
+        :key="index"
+        :class="{ active: param.title === this.mode }"
+        @click="setMode(param.title)"
+      >
+        <font-awesome-icon v-bind:icon="param.icon" color="#ec4528" />
+        <span>{{ param.title }}</span>
       </div>
     </div>
     <div class="menu-settings">
-      <template v-if="this.mode == 'words'">
+      <template v-if="this.mode === 'words'">
         <span
+          class="menu-settings_item"
           v-for="(param, index) in wordsParam"
           :key="index"
           @click="setWordsCount(param)"
+          :class="{ active: param === wordsCount }"
           >{{ param }}</span
         >
       </template>
-      <template v-if="this.mode == 'time'">
-        <span v-for="(param, index) in timeParam" :key="index">{{
-          param
-        }}</span>
+      <template v-if="this.mode === 'time'">
+        <span
+          class="menu-settings_item"
+          v-for="(param, index) in timeParam"
+          :key="index"
+          @click="setTimeCount(param)"
+          :class="{ active: param === timeCount }"
+          >{{ param }}</span
+        >
       </template>
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
+.active {
+  background: #414856;
+  border-radius: 5px;
+}
 .menu {
   // Позиционирование
 
@@ -93,6 +124,7 @@ export default {
       display: flex;
       align-items: center;
       justify-content: center;
+      padding: 5px;
 
       span {
         padding-left: 5px;
@@ -106,6 +138,10 @@ export default {
     align-items: center;
     justify-content: space-around;
     cursor: pointer;
+    &_item {
+      padding: 5px;
+      text-align: center;
+    }
   }
 }
 </style>

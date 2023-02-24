@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 
 export const useModeStore = defineStore("mode", {
   state: () => {
-    return { mode: "words", wordsCount: 10 };
+    return { mode: "time", wordsCount: 10, timeCount: 15 };
   },
 
   actions: {
@@ -14,7 +14,9 @@ export const useModeStore = defineStore("mode", {
     },
     setWordsCount(num) {
       this.wordsCount = num;
-      console.log(this.wordsCount);
+    },
+    setTimeCount(num) {
+      this.timeCount = num;
     },
   },
 });
