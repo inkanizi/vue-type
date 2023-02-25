@@ -25,6 +25,8 @@ export default {
       isEnd: false,
       rowHeight: 0,
       caretPostionY: null, //более универсально если оно будет вычесляться в маунте
+      capsWarning: false,
+      arrCorrectWords: [],
     };
   },
   mounted() {
@@ -67,7 +69,7 @@ export default {
     //строка опускается взависимости от позиции картеки
     caretPostionY() {
       if (this.caretPostionY) {
-        if (this.caretPostionY > 406) {
+        if (this.caretPostionY > 440) {
           this.rowHeight += 32;
         }
       }
@@ -126,11 +128,16 @@ export default {
     //отработка с нажатия клавиш
     checkWord(e) {
       this.keyEvent = e;
+      e.getModifierState("CapsLock")
+        ? (this.capsWarning = true)
+        : (this.capsWarning = false);
+
       let word = this.words[this.currentWord];
 
       if (e.code === "Space") {
         if (e.target.value === word.text) {
           word.class = "correctWord";
+          this.arrCorrectWords.push(word);
           this.countCorrectWords++;
           this.nextWord();
         } else if (e.target.value.length === word.text.length) {
@@ -146,8 +153,7 @@ export default {
       let caret = document.querySelector(".caret");
       this.caretPostionY = caret
         ? Math.round(caret.getBoundingClientRect().y)
-        : 406;
-
+        : 440;
       this.start();
       let input = e.target.value.split("");
       let word = this.words[this.currentWord].letters[this.currentLetter];
@@ -209,6 +215,9 @@ export default {
 <template>
   <div class="typeframe">
     <template v-if="!isEnd">
+      <div class="typeframe-capswarning">
+        <p v-if="capsWarning">Caps Lock!</p>
+      </div>
       <div class="typeframe-counter">
         <div v-show="isStart">{{ currentTime }}</div>
       </div>
@@ -252,7 +261,7 @@ export default {
 
     <Result
       v-if="isEnd"
-      :wpm="wpm"
+      :arrCorrectWords="arrCorrectWords"
       :countCorrectWords="countCorrectWords"
       :time="testTime"
       :accurancy="accurancy"
@@ -297,10 +306,10 @@ export default {
   }
 }
 .typeframe {
-  margin-top: 150px;
+  margin-top: 100px;
   border-radius: 15px;
   width: 700px;
-  height: 200px;
+  height: 300px;
   display: flex;
   align-items: flex-start;
   text-align: end;
@@ -308,6 +317,20 @@ export default {
   justify-content: space-around;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 
+  &-capswarning {
+    color: black;
+    width: 100%;
+    display: flex;
+    height: 41px;
+    align-items: center;
+    justify-content: center;
+    p {
+      background: #ec5028;
+      padding: 10px;
+      font-weight: 500;
+      border-radius: 10px;
+    }
+  }
   &-counter {
     color: #ec5028;
     font-size: 20px;

@@ -1,19 +1,15 @@
 <script>
 export default {
   props: {
-    wpm: Number,
     countCorrectWords: Number,
     time: Number,
     accurancy: Number,
+    arrCorrectWords: Array,
   },
   emits: ["restart"],
   data() {
     return {
       stats: [
-        {
-          title: "wpm",
-          value: this.wpm,
-        },
         {
           title: "words",
           value: this.countCorrectWords,
@@ -27,7 +23,23 @@ export default {
           value: this.accurancy,
         },
       ],
+      sum: 0,
     };
+  },
+  mounted() {},
+  computed: {
+    calcWpm() {
+      //сумма кешируется мне это не надо
+      this.arrCorrectWords.forEach((item) => {
+        item.letters.forEach((i) => {
+          this.sum++;
+          console.log(this.sum);
+        });
+      });
+      let symbvol = this.sum / 5;
+      this.sum = 0;
+      return Math.round(symbvol / (this.time / 60));
+    },
   },
 };
 </script>
@@ -42,6 +54,10 @@ export default {
       >
         <h2>{{ stat.value }}</h2>
         <span>{{ stat.title }}</span>
+      </div>
+      <div class="result-stats_item">
+        <h2>{{ calcWpm }}</h2>
+        <span>wpm</span>
       </div>
     </div>
     <button @click="$emit('restart')" class="result-btn_restart">
@@ -95,7 +111,7 @@ export default {
     display: flex;
     flex-direction: column;
     align-items: center;
-    span{
+    span {
       font-size: 16px;
     }
     kbd {

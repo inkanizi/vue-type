@@ -14,7 +14,7 @@ export default {};
 <style lang="scss" scoped>
 .footer {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  padding: 350px 0 0 0;
+  padding: 300px 0 0 0;
   height: 20px;
   font-size: 14px;
   display: flex;
