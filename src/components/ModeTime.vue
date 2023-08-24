@@ -92,6 +92,7 @@ export default {
       this.timer = null;
       this.currentWord = 0;
       this.currentLetter = 0;
+      this.arrCorrectWords = [];
       this.countCorrectWords = 0;
       this.accurancy = 0;
       this.text = "";
@@ -128,43 +129,50 @@ export default {
     //отработка с нажатия клавиш
     checkWord(e) {
       this.keyEvent = e;
-      e.getModifierState("CapsLock")
-        ? (this.capsWarning = true)
-        : (this.capsWarning = false);
+      this.capsWarning = e.getModifierState("CapsLock");
 
-      let word = this.words[this.currentWord];
+      const word = this.words[this.currentWord];
 
       if (e.code === "Space") {
-        if (e.target.value === word.text) {
+        const inputValue = e.target.value;
+        const isCorrect = inputValue === word.text;
+        const isIncorrect =
+          inputValue.length === word.text.length && !isCorrect;
+
+        if (isCorrect) {
           word.class = "correctWord";
-          this.arrCorrectWords.push(word);
           this.countCorrectWords++;
+          this.arrCorrectWords.push(word);
           this.nextWord();
-        } else if (e.target.value.length === word.text.length) {
+        } else if (isIncorrect) {
           word.class = "incorrectWord";
           this.nextWord();
         }
+
         e.preventDefault();
       }
     },
     //отработка изменений в инпуте
     checkLetter(e) {
-      //получаем позицию каретки
+      this.start();
+
       let caret = document.querySelector(".caret");
       this.caretPostionY = caret
         ? Math.round(caret.getBoundingClientRect().y)
         : 440;
-      this.start();
-      let input = e.target.value.split("");
-      let word = this.words[this.currentWord].letters[this.currentLetter];
+
+      const input = e.target.value;
+      const word = this.words[this.currentWord].letters[this.currentLetter];
 
       if (this.keyEvent.code === "Backspace") {
-        this.words[this.currentWord].letters[this.currentLetter - 1].class = "";
-        word ? (word.class = "") : null;
-        this.currentLetter--;
+        if (this.currentLetter > 0) {
+          this.words[this.currentWord].letters[this.currentLetter - 1].class =
+            "";
+          if (word) word.class = "";
+          this.currentLetter--;
+        }
       } else if (input.length > this.words[this.currentWord].text.length) {
-        //если буква больше чем есть в слове то надо это прерывать
-        this.nextWord(); //не надежно
+        this.nextWord();
       } else {
         if (input[this.currentLetter] === word.letter) {
           word.class = "correctLetter";

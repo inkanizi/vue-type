@@ -24,22 +24,24 @@ export default {
         },
       ],
       sum: 0,
+      wpm: 0,
     };
   },
-  mounted() {},
-  computed: {
-    calcWpm() {
-      //сумма кешируется мне это не надо
-      this.arrCorrectWords.forEach((item) => {
-        item.letters.forEach((i) => {
-          this.sum++;
-          console.log(this.sum);
-        });
+  mounted() {
+    this.sum = 0;
+    console.log("mounted");
+    this.sum = 0;
+    this.arrCorrectWords.forEach((item) => {
+      item.letters.forEach((i) => {
+        this.sum++;
       });
-      let symbvol = this.sum / 5;
-      this.sum = 0;
-      return Math.round(symbvol / (this.time / 60));
-    },
+    });
+    let symbvol = this.sum / 5;
+
+    this.wpm = Math.round(symbvol / (this.time / 60));
+  },
+  unmounted() {
+    this.sum = 0;
   },
 };
 </script>
@@ -56,7 +58,7 @@ export default {
         <span>{{ stat.title }}</span>
       </div>
       <div class="result-stats_item">
-        <h2>{{ calcWpm }}</h2>
+        <h2>{{ wpm }}</h2>
         <span>wpm</span>
       </div>
     </div>
