@@ -22,16 +22,20 @@ export default {
       date2: null,
       keyEvent: {}, //для передачи event с клавиатуры в событие инпута
       showCounter: true, // чтобы высоты не скакала
-      rowHeight: 0,
-      caretPostionY: null, //более универсально если оно будет вычесляться в маунте
+      row: 0,
       capsWarning: false,
       arrCorrectWords: [],
+      toDeleteWords: [],
+      lastRowWords: [],
     };
   },
-  mounted() {
+  beforeMount() {
     this.shuffle();
     this.words = take(words, this.wordsCount);
     this.clearClasses();
+  },
+  mounted() {
+    this.takeLastWordsInRow();
   },
   computed: {
     wpm() {
@@ -67,6 +71,7 @@ export default {
     wordsCount() {
       this.words = take(words, this.wordsCount);
       this.clearClasses();
+      this.takeLastWordsInRow();
     },
     isEnd() {
       if (this.isEnd === true) {
@@ -82,15 +87,28 @@ export default {
         word.letters[oldVal] && (word.letters[oldVal].class += " ");
       } catch {}
     },
-    caretPostionY() {
-      if (this.caretPostionY) {
-        if (this.caretPostionY > 440) {
-          this.rowHeight += 32;
-        }
-      }
-    },
   },
   methods: {
+    //Берет последние слова в каждой строке
+    takeLastWordsInRow() {
+      const takedWords = document.querySelectorAll(".typeframe-words_word");
+      let yPosDefault = takedWords[0].getBoundingClientRect().y;
+      takedWords.forEach((element, index) => {
+        const yPosElement = element.getBoundingClientRect().y;
+
+        if (yPosElement > yPosDefault) {
+          this.lastRowWords.push(this.words[index - 1]);
+          yPosDefault = yPosElement;
+        }
+      });
+    },
+    //Обрезание строки, первой в отображении
+    trimRow() {
+      this.toDeleteWords.pop();
+      const newWords = new Set(this.toDeleteWords);
+      this.words = this.words.filter((e) => !newWords.has(e));
+      this.currentWord = 0;
+    },
     //старт теста, срабатывает единожды, при рестарте обновляется
     start() {
       this.isStart = true;
@@ -106,13 +124,13 @@ export default {
       this.currentLetter = 0;
       this.countCorrectWords = 0;
       this.arrCorrectWords = [];
+      this.toDeleteWords = [];
       this.accurancy = 0;
       this.text = "";
       this.date1 = null;
       this.date2 = null;
+      this.row = 0;
       this.isStart = false;
-      this.rowHeight = 0;
-      this.caretPostionY = null;
       this.start = this.start = function () {
         this.isStart = true;
         this.date1 = new Date();
@@ -146,6 +164,8 @@ export default {
 
       const word = this.words[this.currentWord];
 
+      this.toDeleteWords.push(word);
+
       if (e.code === "Space") {
         const inputValue = e.target.value;
         const isCorrect = inputValue === word.text;
@@ -161,6 +181,11 @@ export default {
           word.class = "incorrectWord";
           this.nextWord();
         }
+        //Проверка последного слова в строке
+        if (word == this.lastRowWords[this.row]) {
+          this.trimRow();
+          this.row++;
+        }
 
         e.preventDefault();
       }
@@ -168,11 +193,6 @@ export default {
     //отработка изменений в инпуте
     checkLetter(e) {
       this.start();
-
-      let caret = document.querySelector(".caret");
-      this.caretPostionY = caret
-        ? Math.round(caret.getBoundingClientRect().y)
-        : 440;
 
       const input = e.target.value;
       const word = this.words[this.currentWord].letters[this.currentLetter];
@@ -229,16 +249,10 @@ export default {
         <p v-if="capsWarning">Caps Lock!</p>
       </div>
       <div class="typeframe-counter">
-        <div v-show="isStart">{{ countCorrectWords }}/{{ words.length }}</div>
+        <div v-show="isStart">{{ countCorrectWords }}/{{ wordsCount }}</div>
       </div>
       <div class="typeframe-wrapper" ref="wrapRef">
-        <div
-          class="typeframe-words"
-          ref="wordsRef"
-          :style="{
-            bottom: `${this.rowHeight}px`,
-          }"
-        >
+        <div class="typeframe-words" ref="wordsRef">
           <p
             :class="word.class"
             class="typeframe-words_word"
@@ -341,14 +355,13 @@ export default {
   &::after {
     content: "press Tab to focus";
     position: relative;
-    right: 200px;
+    right: 40%;
     bottom: 0;
     z-index: 21;
     font-weight: 500;
     color: #ec5028;
     font-size: 30px;
     width: 600px;
-    height: 90px;
   }
 }
 .typeframe {
