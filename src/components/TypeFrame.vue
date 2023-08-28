@@ -27,6 +27,7 @@ export default {
       arrCorrectWords: [],
       toDeleteWords: [],
       lastRowWords: [],
+      isLetterLimit: false,
     };
   },
   beforeMount() {
@@ -84,6 +85,7 @@ export default {
         let word = this.words[this.currentWord];
         word.letters[this.currentLetter] &&
           (word.letters[this.currentLetter].class += " caret");
+        document.getElementById("caret").animate(next);
         word.letters[oldVal] && (word.letters[oldVal].class += " ");
       } catch {}
     },
@@ -156,6 +158,7 @@ export default {
       this.currentWord++;
       this.text = "";
       this.currentLetter = 0;
+      this.isLetterLimit = false;
     },
     //отработка с нажатия клавиш
     checkWord(e) {
@@ -167,24 +170,31 @@ export default {
       this.toDeleteWords.push(word);
 
       if (e.code === "Space") {
-        const inputValue = e.target.value;
-        const isCorrect = inputValue === word.text;
+        const isCorrect = e.target.value === word.text;
         const isIncorrect =
-          inputValue.length === word.text.length && !isCorrect;
+          e.target.value.length === word.text.length && !isCorrect;
 
         if (isCorrect) {
           word.class = "correctWord";
           this.countCorrectWords++;
           this.arrCorrectWords.push(word);
+
           this.nextWord();
+
+          //Проверка последного слова в строке
+          if (word == this.lastRowWords[this.row]) {
+            this.trimRow();
+            this.row++;
+          }
         } else if (isIncorrect) {
           word.class = "incorrectWord";
           this.nextWord();
-        }
-        //Проверка последного слова в строке
-        if (word == this.lastRowWords[this.row]) {
-          this.trimRow();
-          this.row++;
+
+          //Проверка последного слова в строке
+          if (word == this.lastRowWords[this.row]) {
+            this.trimRow();
+            this.row++;
+          }
         }
 
         e.preventDefault();
@@ -194,7 +204,7 @@ export default {
     checkLetter(e) {
       this.start();
 
-      const input = e.target.value;
+      let input = e.target.value;
       const word = this.words[this.currentWord].letters[this.currentLetter];
 
       if (this.keyEvent.code === "Backspace") {
@@ -204,15 +214,24 @@ export default {
           if (word) word.class = "";
           this.currentLetter--;
         }
-      } else if (input.length > this.words[this.currentWord].text.length) {
-        this.nextWord();
+        //
+      } else if (input.length > this.words[this.currentWord].text.length && !this.isLetterLimit) {
+        // this.nextWord();
+        this.isLetterLimit = true;
       } else {
-        if (input[this.currentLetter] === word.letter) {
-          word.class = "correctLetter";
-          this.currentLetter++;
+        if (!this.isLetterLimit) {
+          if (input[this.currentLetter] === word.letter) {
+            word.class = "correctLetter";
+            this.currentLetter++;
+          } else {
+            word.class = "incorrectLetter";
+            this.currentLetter++;
+          }
+          //ниже, после лимита нужно не давать дальше вводить буквы
         } else {
-          word.class = "incorrectLetter";
-          this.currentLetter++;
+          console.log(input[this.currentLetter + 1]);
+          input = input.slice(this.currentLetter + 1, input.length)
+          console.log(this.keyEvent);
         }
       }
     },
@@ -266,6 +285,7 @@ export default {
               :class="item.class"
             >
               {{ item.letter }}
+              
             </span>
           </p>
         </div>
@@ -280,6 +300,15 @@ export default {
         v-model.trim="text"
         class="typeframe-input"
       />
+      <div>
+        <ul>
+          <li><strong>Текущая буква - </strong>{{ currentLetter }}</li>
+          <li><strong>Текущее слово - </strong>{{ currentWord }}</li>
+          <li><strong>лимит - </strong>{{ isLetterLimit }}</li>
+          <li><strong></strong></li>
+          <li><strong></strong></li>
+        </ul>
+      </div>
     </template>
 
     <Result
@@ -294,6 +323,9 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+ul {
+  color: #ec5028;
+}
 .word {
   position: relative;
   padding-left: 10px;
@@ -308,17 +340,24 @@ export default {
       height: 26px;
       background-color: #ec5028;
       position: absolute;
-      animation: next 1s infinite;
+      animation: loop 1s infinite;
       animation-direction: alternate;
     }
 
-    @keyframes next {
+    @keyframes loop {
       from {
         opacity: 0;
       }
       to {
         opacity: 1;
       }
+    }
+  }
+  @keyframes next {
+    0% {
+      transform: translate(-10px, 0px);
+    }
+    100% {
     }
   }
 
@@ -329,6 +368,7 @@ export default {
     height: 26px;
     background-color: #ec5028;
     position: absolute;
+    animation: next 0.1s ease-out forwards;
   }
 }
 .correctWord {
@@ -339,6 +379,7 @@ export default {
 }
 .incorrectWord {
   color: rgb(183, 241, 8) !important;
+  text-decoration: underline red 1px;
 }
 .correctLetter {
   color: #ec5028;
@@ -420,7 +461,6 @@ export default {
     }
   }
   &-input {
-    opacity: 0;
     background: transparent;
     outline: none;
     border: 1px solid #ec5028;
