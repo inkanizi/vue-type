@@ -12,36 +12,37 @@ export default {
   data() {
     return {
       words: words,
-      text: "",
+      text: "", //Текст самого инпута (изменяемый)
       currentWord: 0,
       currentLetter: 0,
-      accurancy: 0,
+      accurancy: 0, //Аккуратность
       countCorrectWords: 0,
       isStart: false,
       date1: null,
       date2: null,
       keyEvent: {}, //для передачи event с клавиатуры в событие инпута
-      showCounter: true, // чтобы высоты не скакала
-      row: 0,
-      capsWarning: false,
+      row: 0, //Кол-во строк в отображаемом тексте
+      capsWarning: false, //Предупреждение о капсе
       arrCorrectWords: [],
-      toDeleteWords: [],
-      lastRowWords: [],
-      isLetterLimit: false,
+      toDeleteWords: [], //Массив слов, которые будут убраны после изменения строки
+      lastRowWords: [], //Последние слова в каждой из строк
+      isLetterLimit: false, //Лимит букв в слове
     };
   },
+  //Перед монтированием
   beforeMount() {
     this.shuffle();
     this.words = take(words, this.wordsCount);
     this.clearClasses();
   },
+  //Во время монтирования
   mounted() {
     this.takeLastWordsInRow();
   },
   computed: {
-    wpm() {
-      return Math.floor(this.countCorrectWords / (this.time / 60));
-    },
+    // wpm() {
+    //   return Math.floor(this.countCorrectWords / (this.time / 60));
+    // },
     time() {
       return Math.floor((this.date2 - this.date1) / 1000);
     },
@@ -64,16 +65,19 @@ export default {
     ...mapState(useModeStore, {
       modeStore: "mode",
     }),
+    //Последняя буква во всём тексте
     lastLetter() {
       return this.words.at(-1).letters.at(-1);
     },
   },
   watch: {
+    //При изменении кол-ва слов, нужно еще что-то изменять
     wordsCount() {
       this.words = take(words, this.wordsCount);
       this.clearClasses();
       this.takeLastWordsInRow();
     },
+    //Определение когда закончился тест
     isEnd() {
       if (this.isEnd === true) {
         this.date2 = new Date();
@@ -88,6 +92,14 @@ export default {
         document.getElementById("caret").animate(next);
         word.letters[oldVal] && (word.letters[oldVal].class += " ");
       } catch {}
+    },
+    //Если лимит пропадает, то его класс тоже
+    isLetterLimit() {
+      if (this.words[this.currentWord].class.indexOf("limit") !== -1) {
+        this.words[this.currentWord].class = this.words[
+          this.currentWord
+        ].class.slice(0, this.words[this.currentWord].class.indexOf("limit"));
+      }
     },
   },
   methods: {
@@ -207,17 +219,37 @@ export default {
       let input = e.target.value;
       const word = this.words[this.currentWord].letters[this.currentLetter];
 
+      // Отбработка в случае лимита букв
+      if (this.isLetterLimit) {
+        let slicedText = "";
+
+        slicedText = this.text.slice(
+          0,
+          this.words[this.currentWord].text.length
+        );
+        this.text = slicedText;
+
+        if (this.words[this.currentWord].class.indexOf("limit") === -1) {
+          this.words[this.currentWord].class += " limit";
+        }
+      }
+      //Нажатие на backspace
       if (this.keyEvent.code === "Backspace") {
         if (this.currentLetter > 0) {
           this.words[this.currentWord].letters[this.currentLetter - 1].class =
             "";
           if (word) word.class = "";
           this.currentLetter--;
+          this.isLetterLimit = false;
         }
-        //
-      } else if (input.length > this.words[this.currentWord].text.length && !this.isLetterLimit) {
-        // this.nextWord();
+        //Когда есть лимит, он дается, только с задержкой в 1 симбвол
+      } else if (
+        input.length > this.words[this.currentWord].text.length &&
+        !this.isLetterLimit
+      ) {
         this.isLetterLimit = true;
+
+        //Определение верного симбвола (буквы)
       } else {
         if (!this.isLetterLimit) {
           if (input[this.currentLetter] === word.letter) {
@@ -227,11 +259,6 @@ export default {
             word.class = "incorrectLetter";
             this.currentLetter++;
           }
-          //ниже, после лимита нужно не давать дальше вводить буквы
-        } else {
-          console.log(input[this.currentLetter + 1]);
-          input = input.slice(this.currentLetter + 1, input.length)
-          console.log(this.keyEvent);
         }
       }
     },
@@ -285,7 +312,6 @@ export default {
               :class="item.class"
             >
               {{ item.letter }}
-              
             </span>
           </p>
         </div>
@@ -300,15 +326,15 @@ export default {
         v-model.trim="text"
         class="typeframe-input"
       />
-      <div>
+      <!-- Для отладки -->
+      <!-- <div>
         <ul>
           <li><strong>Текущая буква - </strong>{{ currentLetter }}</li>
           <li><strong>Текущее слово - </strong>{{ currentWord }}</li>
-          <li><strong>лимит - </strong>{{ isLetterLimit }}</li>
-          <li><strong></strong></li>
-          <li><strong></strong></li>
+          <li><strong>Лимит - </strong>{{ isLetterLimit }}</li>
+          <li><strong>Строка - </strong>{{ row }}</li>
         </ul>
-      </div>
+      </div> -->
     </template>
 
     <Result
@@ -331,6 +357,47 @@ ul {
   padding-left: 10px;
   font-size: 24px;
 }
+
+.limit {
+  animation: shake 0.5s infinite;
+
+  @keyframes shake {
+    0% {
+      transform: translate(1px, 1px) rotate(0deg);
+    }
+    10% {
+      transform: translate(-1px, -2px) rotate(-1deg);
+    }
+    20% {
+      transform: translate(-3px, 0px) rotate(1deg);
+    }
+    30% {
+      transform: translate(3px, 2px) rotate(0deg);
+    }
+    40% {
+      transform: translate(1px, -1px) rotate(1deg);
+    }
+    50% {
+      transform: translate(-1px, 2px) rotate(-1deg);
+    }
+    60% {
+      transform: translate(-3px, 1px) rotate(0deg);
+    }
+    70% {
+      transform: translate(3px, 1px) rotate(-1deg);
+    }
+    80% {
+      transform: translate(-1px, -1px) rotate(1deg);
+    }
+    90% {
+      transform: translate(1px, 2px) rotate(0deg);
+    }
+    100% {
+      transform: translate(1px, -2px) rotate(-1deg);
+    }
+  }
+}
+
 .caret {
   &_first {
     &::before {
@@ -461,6 +528,7 @@ ul {
     }
   }
   &-input {
+    opacity: 0;
     background: transparent;
     outline: none;
     border: 1px solid #ec5028;
