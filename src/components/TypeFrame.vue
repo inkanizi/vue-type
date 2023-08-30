@@ -37,12 +37,9 @@ export default {
   },
   //Во время монтирования
   mounted() {
-    this.takeLastWordsInRow();
+
   },
   computed: {
-    // wpm() {
-    //   return Math.floor(this.countCorrectWords / (this.time / 60));
-    // },
     time() {
       return Math.floor((this.date2 - this.date1) / 1000);
     },
@@ -71,6 +68,9 @@ export default {
     },
   },
   watch: {
+    words() {
+      this.takeLastWordsInRow();
+    },
     //При изменении кол-ва слов, нужно еще что-то изменять
     wordsCount() {
       this.words = take(words, this.wordsCount);
@@ -85,13 +85,18 @@ export default {
     },
     //каретка
     currentLetter(oldVal) {
-      try {
-        let word = this.words[this.currentWord];
-        word.letters[this.currentLetter] &&
-          (word.letters[this.currentLetter].class += " caret");
-        document.getElementById("caret").animate(next);
-        word.letters[oldVal] && (word.letters[oldVal].class += " ");
-      } catch {}
+      let word = this.words[this.currentWord];
+
+      word.letters[this.currentLetter] &&
+        (word.letters[this.currentLetter].class += " caret");
+
+      word.letters[oldVal] && (word.letters[oldVal].class += " ");
+
+      if (
+        word.letters[word.letters.length] === word.letters[this.currentLetter]
+      ) {
+        word.letters[word.letters.length - 1].class += " lastCaret";
+      }
     },
     //Если лимит пропадает, то его класс тоже
     isLetterLimit() {
@@ -104,7 +109,8 @@ export default {
   },
   methods: {
     //Берет последние слова в каждой строке
-    takeLastWordsInRow() {
+    async takeLastWordsInRow() {
+      await nextTick();
       const takedWords = document.querySelectorAll(".typeframe-words_word");
       let yPosDefault = takedWords[0].getBoundingClientRect().y;
       takedWords.forEach((element, index) => {
@@ -139,11 +145,13 @@ export default {
       this.countCorrectWords = 0;
       this.arrCorrectWords = [];
       this.toDeleteWords = [];
+      this.lastRowWords = [];
       this.accurancy = 0;
       this.text = "";
       this.date1 = null;
       this.date2 = null;
       this.row = 0;
+      this.isLetterLimit = false;
       this.isStart = false;
       this.start = this.start = function () {
         this.isStart = true;
@@ -167,6 +175,17 @@ export default {
     },
     //переключает слово вперед
     nextWord() {
+      const lastLetter =
+        this.words[this.currentWord].letters[
+          this.words[this.currentWord].letters.length - 1
+        ];
+
+      if (lastLetter.class.indexOf("lastCaret") !== -1) {
+        lastLetter.class = lastLetter.class.slice(
+          0,
+          lastLetter.class.indexOf("lastCaret")
+        );
+      }
       this.currentWord++;
       this.text = "";
       this.currentLetter = 0;
@@ -185,6 +204,7 @@ export default {
         const isCorrect = e.target.value === word.text;
         const isIncorrect =
           e.target.value.length === word.text.length && !isCorrect;
+        const isLastWord = word == this.lastRowWords[this.row];
 
         if (isCorrect) {
           word.class = "correctWord";
@@ -194,7 +214,7 @@ export default {
           this.nextWord();
 
           //Проверка последного слова в строке
-          if (word == this.lastRowWords[this.row]) {
+          if (isLastWord) {
             this.trimRow();
             this.row++;
           }
@@ -203,7 +223,7 @@ export default {
           this.nextWord();
 
           //Проверка последного слова в строке
-          if (word == this.lastRowWords[this.row]) {
+          if (isLastWord) {
             this.trimRow();
             this.row++;
           }
@@ -222,7 +242,6 @@ export default {
       // Отбработка в случае лимита букв
       if (this.isLetterLimit) {
         let slicedText = "";
-
         slicedText = this.text.slice(
           0,
           this.words[this.currentWord].text.length
@@ -242,13 +261,6 @@ export default {
           this.currentLetter--;
           this.isLetterLimit = false;
         }
-        //Когда есть лимит, он дается, только с задержкой в 1 симбвол
-      } else if (
-        input.length > this.words[this.currentWord].text.length &&
-        !this.isLetterLimit
-      ) {
-        this.isLetterLimit = true;
-
         //Определение верного симбвола (буквы)
       } else {
         if (!this.isLetterLimit) {
@@ -260,6 +272,13 @@ export default {
             this.currentLetter++;
           }
         }
+      }
+      //Когда есть лимит, он дается
+      if (
+        input.length + 1 > this.words[this.currentWord].text.length &&
+        !this.isLetterLimit
+      ) {
+        this.isLetterLimit = true;
       }
     },
     //при фокусе и блюре, показывает окно расфокуса
@@ -335,6 +354,13 @@ export default {
           <li><strong>Строка - </strong>{{ row }}</li>
         </ul>
       </div> -->
+      <button @click="restart" class="typeframe-btn_restart">
+        <font-awesome-icon
+          icon="fa-solid fa-arrows-rotate"
+          color="#313641"
+          size="2x"
+        />
+      </button>
     </template>
 
     <Result
@@ -349,6 +375,17 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+.lastCaret {
+  &::after {
+    content: "";
+    width: 2px;
+    top: 6px;
+    height: 26px;
+    background-color: #ec5028;
+    position: absolute;
+    animation: next 0.1s ease-out forwards;
+  }
+}
 ul {
   color: #ec5028;
 }
@@ -398,6 +435,22 @@ ul {
   }
 }
 
+@keyframes loop {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes next {
+  0% {
+    transform: translate(-10px, 0px);
+  }
+  100% {
+  }
+}
 .caret {
   &_first {
     &::before {
@@ -409,22 +462,6 @@ ul {
       position: absolute;
       animation: loop 1s infinite;
       animation-direction: alternate;
-    }
-
-    @keyframes loop {
-      from {
-        opacity: 0;
-      }
-      to {
-        opacity: 1;
-      }
-    }
-  }
-  @keyframes next {
-    0% {
-      transform: translate(-10px, 0px);
-    }
-    100% {
     }
   }
 
@@ -535,6 +572,18 @@ ul {
     padding: 10px;
     border-radius: 15px;
     color: white;
+  }
+  &-btn_restart {
+    outline: none;
+    border: none;
+    background: transparent;
+    padding: 5px 15px;
+    border-radius: 5px;
+    font-size: 20px;
+    margin-left: 40%;
+    &:focus {
+      border: #ec5028 1px solid;
+    }
   }
 }
 </style>

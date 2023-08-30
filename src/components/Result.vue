@@ -29,7 +29,6 @@ export default {
   },
   mounted() {
     this.sum = 0;
-    console.log("mounted");
     this.sum = 0;
     this.arrCorrectWords.forEach((item) => {
       item.letters.forEach((i) => {
