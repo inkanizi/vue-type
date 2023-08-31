@@ -192,9 +192,15 @@ const dictonary = [
 
 const words = [];
 
+//Берет обпред кол-во случайных слов
 export const take = (arr, n) => {
   return arr.sort(() => 0.5 - Math.random()).slice(0, n);
 };
+
+//Случайное пермешивание массива
+export const shuffle = (words) => {
+  return words.sort(() => 0.5 - Math.random());
+}
 
 const fill = () => {
   dictonary.forEach((item) => {

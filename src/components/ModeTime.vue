@@ -19,7 +19,6 @@ export default {
       countCorrectWords: 0,
       isStart: false,
       keyEvent: {}, //для передачи event с клавиатуры в событие инпута
-      showCounter: true, // чтобы высоты не скакала
       currentTime: 0,
       timer: null,
       isEnd: false,

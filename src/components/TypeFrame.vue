@@ -2,7 +2,7 @@
 import words from "../utils/dictionary";
 import Result from "./Result.vue";
 import { nextTick } from "vue";
-import { take } from "../utils/dictionary";
+import { take, shuffle } from "../utils/dictionary";
 import { mapState } from "pinia";
 import { useModeStore } from "../store/mode";
 export default {
@@ -31,7 +31,8 @@ export default {
   },
   //Перед монтированием
   beforeMount() {
-    this.shuffle();
+    // this.shuffle();
+    this.words = shuffle(this.words)
     this.words = take(words, this.wordsCount);
     this.clearClasses();
   },
@@ -161,18 +162,15 @@ export default {
         };
       };
       this.words = take(words, this.wordsCount);
-      this.shuffle();
+      // this.shuffle();
+      this.words = shuffle(this.words)
       this.clearClasses();
 
       //Решает проблему с фокусом в инпут
       await nextTick();
       this.$refs.focusRef.focus();
     },
-    //Пермешивание массива
-    shuffle() {
-      const randomWords = this.words.sort(() => 0.5 - Math.random());
-      this.words = randomWords;
-    },
+
     //переключает слово вперед
     nextWord() {
       const lastLetter =

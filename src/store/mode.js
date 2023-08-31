@@ -18,5 +18,6 @@ export const useModeStore = defineStore("mode", {
     setTimeCount(num) {
       this.timeCount = num;
     },
+    persist: true,
   },
 });

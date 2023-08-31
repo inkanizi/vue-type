@@ -18,17 +18,16 @@ export default {
           title: "time",
           value: this.time,
         },
-        {
-          title: "acc",
-          value: this.accurancy,
-        },
+        // {
+        //   title: "acc",
+        //   value: this.accurancy,
+        // },
       ],
       sum: 0,
       wpm: 0,
     };
   },
   mounted() {
-    this.sum = 0;
     this.sum = 0;
     this.arrCorrectWords.forEach((item) => {
       item.letters.forEach((i) => {
