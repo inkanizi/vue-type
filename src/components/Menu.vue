@@ -53,7 +53,7 @@ export default {
         :class="{ active: param.title === this.mode }"
         @click="setMode(param.title)"
       >
-        <font-awesome-icon v-bind:icon="param.icon" color="#ec4528" />
+        <font-awesome-icon v-bind:icon="param.icon" class="menu_mode-icons" />
         <span>{{ param.title }}</span>
       </div>
     </div>
@@ -83,25 +83,20 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+@import "../assets/variables.scss";
 .active {
-  background: #414856;
+  background: $alt-secong-bg-color;
   border-radius: 5px;
 }
 .menu {
-  // Позиционирование
-
-  // Блочная модель
   display: flex;
   align-items: center;
   justify-content: space-around;
   width: 100%;
   margin: 100px 0 0 0;
   height: 40px;
-  // Типографика
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  // Оформление
-  color: #ec4528;
-  background: #313641;
+  color: $base-light-color;
+  background: $secong-bg-color;
   border-radius: 5px;
 
   &-mode {
@@ -118,6 +113,9 @@ export default {
       height: 25px;
       background: #3f4553;
       border-radius: 20px;
+    }
+    &-icons {
+      color: $base-light-color;
     }
 
     &_item {

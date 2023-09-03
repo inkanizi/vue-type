@@ -1,7 +1,6 @@
 <script>
 import Menu from "./components/Menu.vue";
 import Header from "./components/Header.vue";
-import Footer from "./components/Footer.vue";
 import ModeTime from "./components/ModeTime.vue";
 import { mapState } from "pinia";
 import { useModeStore } from "./store/mode";
@@ -10,10 +9,9 @@ export default {
   components: {
     Menu,
     Header,
-    Footer,
     ModeTime,
-    ModeWords
-},
+    ModeWords,
+  },
   computed: {
     ...mapState(useModeStore, ["mode"]),
   },
@@ -23,12 +21,11 @@ export default {
 <template>
   <div class="app">
     <Header />
-    <div>
+    <div class="app_main">
       <Menu />
       <ModeWords v-if="this.mode === 'words'" />
       <ModeTime v-if="this.mode === 'time'" />
     </div>
-    <Footer />
   </div>
 </template>
 
@@ -36,7 +33,14 @@ export default {
 .app {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   flex-direction: column;
   height: 100vh;
+  &_main {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
 }
 </style>

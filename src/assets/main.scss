@@ -1,0 +1,221 @@
+@import "../assets/variables.scss";
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  box-sizing: border-box;
+  margin: 0 auto;
+  background: $bg-color;
+  display: flex;
+  height: 100vh;
+  justify-content: center;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.lastCaret {
+  &::after {
+    content: "";
+    width: 2px;
+    top: 6px;
+    height: 26px;
+    background-color: $base-light-color;
+    position: absolute;
+    animation: next 0.1s ease-out forwards;
+  }
+}
+.word {
+  position: relative;
+  padding-left: 10px;
+  font-size: 24px;
+}
+
+.limit {
+  animation: shake 0.5s infinite;
+}
+
+.caret {
+  &_first {
+    &::before {
+      content: "";
+      width: 2px;
+      top: 6px;
+      height: 26px;
+      background-color: $base-light-color;
+      position: absolute;
+      animation: loop 1s infinite;
+      animation-direction: alternate;
+    }
+  }
+
+  &::before {
+    content: "";
+    width: 2px;
+    top: 6px;
+    height: 26px;
+    background-color: $base-light-color;
+    position: absolute;
+    animation: next 0.1s ease-out forwards;
+  }
+}
+.correctWord {
+  color: white !important ;
+}
+.inactiveWord {
+  color: $inActWord-color;
+}
+.incorrectWord {
+  color: $errLetter-color !important;
+  text-decoration: underline red 1px;
+}
+.correctLetter {
+  color: $base-light-color;
+}
+.incorrectLetter {
+  color: $errLetter-color;
+}
+.blur {
+  filter: blur(2px);
+  position: relative;
+  z-index: 1;
+}
+
+.typeframe {
+  margin-top: 100px;
+  border-radius: 15px;
+  width: 700px;
+  height: 300px;
+  display: flex;
+  align-items: center;
+  text-align: end;
+  flex-direction: column;
+  justify-content: space-around;
+
+  &-capswarning {
+    color: black;
+    width: 100%;
+    display: flex;
+    height: 41px;
+    align-items: center;
+    justify-content: center;
+    p {
+      background: $base-light-color;
+      padding: 10px;
+      font-weight: 500;
+      border-radius: 10px;
+    }
+  }
+  &-counter {
+    color: $base-light-color;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    justify-content: flex-start;
+    margin-left: 8px;
+    height: 30px;
+  }
+  &-wrapper {
+    width: 100%;
+    height: 110px;
+    overflow: hidden;
+  }
+
+  &-words {
+    display: flex;
+    z-index: 1;
+    position: relative;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    align-items: center;
+    user-select: none;
+    overflow: hidden;
+
+    &_word {
+      display: block;
+      position: relative;
+      font-size: 26px;
+      margin-left: 10px;
+    }
+  }
+  &-input {
+    opacity: 0;
+    background: transparent;
+    outline: none;
+    border: 1px solid $base-light-color;
+    padding: 10px;
+    border-radius: 15px;
+    color: white;
+  }
+  &-btn {
+    &_restart {
+      outline: none;
+      border: none;
+      background: transparent;
+      padding: 5px 15px;
+      border-radius: 5px;
+      font-size: 20px;
+      &:focus {
+        border: $base-light-color 1px solid;
+      }
+    }
+    &_icon {
+      color: $secong-bg-color;
+    }
+  }
+}
+
+@keyframes loop {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes next {
+  from {
+    transform: translate(-10px, 0px);
+  }
+  to {
+  }
+}
+
+@keyframes shake {
+  0% {
+    transform: translate(1px, 1px) rotate(0deg);
+  }
+  10% {
+    transform: translate(-1px, -2px) rotate(-1deg);
+  }
+  20% {
+    transform: translate(-3px, 0px) rotate(1deg);
+  }
+  30% {
+    transform: translate(3px, 2px) rotate(0deg);
+  }
+  40% {
+    transform: translate(1px, -1px) rotate(1deg);
+  }
+  50% {
+    transform: translate(-1px, 2px) rotate(-1deg);
+  }
+  60% {
+    transform: translate(-3px, 1px) rotate(0deg);
+  }
+  70% {
+    transform: translate(3px, 1px) rotate(-1deg);
+  }
+  80% {
+    transform: translate(-1px, -1px) rotate(1deg);
+  }
+  90% {
+    transform: translate(1px, 2px) rotate(0deg);
+  }
+  100% {
+    transform: translate(1px, -2px) rotate(-1deg);
+  }
+}

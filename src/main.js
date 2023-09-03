@@ -2,18 +2,14 @@ import { createApp } from "vue";
 import App from "./App.vue";
 import { createPinia } from "pinia";
 
-import "./assets/main.css";
+import "./assets/main.scss";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { faClock } from "@fortawesome/free-regular-svg-icons";
-import {
-  faFont,
-  faArrowsRotate,
-  faGear,
-} from "@fortawesome/free-solid-svg-icons";
+import { faFont, faArrowsRotate } from "@fortawesome/free-solid-svg-icons";
 import { faGithub } from "@fortawesome/free-brands-svg-icons";
 
-library.add(faClock, faFont, faArrowsRotate, faGear, faGithub);
+library.add(faClock, faFont, faArrowsRotate, faGithub);
 
 const pinia = createPinia();
 

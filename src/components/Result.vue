@@ -58,7 +58,7 @@ export default {
     <button @click="$emit('restart')" class="result-btn_restart">
       <font-awesome-icon
         icon="fa-solid fa-arrows-rotate"
-        color="#313641"
+        class="result-btn_restart-icon"
         size="2x"
       />
     </button>
@@ -70,8 +70,9 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+@import "../assets/variables.scss";
 .result {
-  color: #ec4528;
+  color: $base-light-color;
   font-size: 26px;
   display: flex;
   align-items: center;
@@ -83,11 +84,16 @@ export default {
     display: flex;
     width: 600px;
     align-items: center;
-    justify-content: space-between;
+    padding: 18px;
+    border-radius: 8px;
+    background-color: $secong-bg-color;
+    justify-content: space-around;
 
     &_item {
       display: flex;
       flex-direction: column;
+      align-items: center;
+      justify-content: center;
     }
   }
   &-btn {
@@ -99,6 +105,9 @@ export default {
       padding: 5px 15px;
       border-radius: 5px;
       font-size: 20px;
+      &-icon {
+        color: $alt-secong-bg-color;
+      }
     }
   }
   &-shortcut {
