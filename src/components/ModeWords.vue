@@ -15,11 +15,8 @@ export default {
       text: "", //Текст самого инпута (изменяемый)
       currentWord: 0,
       currentLetter: 0,
-      accurancy: 0, //Аккуратность
       countCorrectWords: 0,
       isStart: false,
-      date1: null,
-      date2: null,
       keyEvent: {}, //для передачи event с клавиатуры в событие инпута
       row: 0, //Кол-во строк в отображаемом тексте
       capsWarning: false, //Предупреждение о капсе
@@ -27,19 +24,19 @@ export default {
       toDeleteWords: [], //Массив слов, которые будут убраны после изменения строки
       lastRowWords: [], //Последние слова в каждой из строк
       isLetterLimit: false, //Лимит букв в слове
+
+      date1: null,
+      date2: null,
     };
   },
   //Перед монтированием
   beforeMount() {
-    // this.shuffle();
-    this.words = shuffle(this.words)
     this.words = take(words, this.wordsCount);
+    this.words = shuffle(this.words);
     this.clearClasses();
   },
   //Во время монтирования
-  mounted() {
-
-  },
+  mounted() {},
   computed: {
     time() {
       return Math.floor((this.date2 - this.date1) / 1000);
@@ -147,13 +144,14 @@ export default {
       this.arrCorrectWords = [];
       this.toDeleteWords = [];
       this.lastRowWords = [];
-      this.accurancy = 0;
       this.text = "";
-      this.date1 = null;
-      this.date2 = null;
       this.row = 0;
       this.isLetterLimit = false;
       this.isStart = false;
+
+      this.date1 = null;
+      this.date2 = null;
+
       this.start = this.start = function () {
         this.isStart = true;
         this.date1 = new Date();
@@ -162,8 +160,7 @@ export default {
         };
       };
       this.words = take(words, this.wordsCount);
-      // this.shuffle();
-      this.words = shuffle(this.words)
+      this.words = shuffle(this.words);
       this.clearClasses();
 
       //Решает проблему с фокусом в инпут
@@ -365,7 +362,6 @@ export default {
       v-if="isEnd"
       :countCorrectWords="countCorrectWords"
       :time="time"
-      :accurancy="accurancy"
       :arrCorrectWords="arrCorrectWords"
       @restart="restart"
     />

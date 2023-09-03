@@ -3,7 +3,6 @@ export default {
   props: {
     countCorrectWords: Number,
     time: Number,
-    accurancy: Number,
     arrCorrectWords: Array,
   },
   emits: ["restart"],
@@ -18,10 +17,6 @@ export default {
           title: "time",
           value: this.time,
         },
-        // {
-        //   title: "acc",
-        //   value: this.accurancy,
-        // },
       ],
       sum: 0,
       wpm: 0,

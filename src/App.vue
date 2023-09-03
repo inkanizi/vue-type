@@ -1,19 +1,19 @@
 <script>
-import TypeFrame from "./components/TypeFrame.vue";
 import Menu from "./components/Menu.vue";
 import Header from "./components/Header.vue";
 import Footer from "./components/Footer.vue";
 import ModeTime from "./components/ModeTime.vue";
 import { mapState } from "pinia";
 import { useModeStore } from "./store/mode";
+import ModeWords from "./components/ModeWords.vue";
 export default {
   components: {
-    TypeFrame,
     Menu,
     Header,
     Footer,
     ModeTime,
-  },
+    ModeWords
+},
   computed: {
     ...mapState(useModeStore, ["mode"]),
   },
@@ -25,7 +25,7 @@ export default {
     <Header />
     <div>
       <Menu />
-      <TypeFrame v-if="this.mode === 'words'" />
+      <ModeWords v-if="this.mode === 'words'" />
       <ModeTime v-if="this.mode === 'time'" />
     </div>
     <Footer />

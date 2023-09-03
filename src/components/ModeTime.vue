@@ -2,9 +2,9 @@
 import words from "../utils/dictionary";
 import Result from "./Result.vue";
 import { nextTick } from "vue";
-import { take } from "../utils/dictionary";
 import { mapState } from "pinia";
 import { useModeStore } from "../store/mode";
+import { shuffle } from "../utils/dictionary";
 export default {
   components: {
     Result,
@@ -12,52 +12,55 @@ export default {
   data() {
     return {
       words: words,
-      text: "",
+      text: "", //Текст самого инпута (изменяемый)
       currentWord: 0,
       currentLetter: 0,
-      accurancy: 0,
       countCorrectWords: 0,
       isStart: false,
       keyEvent: {}, //для передачи event с клавиатуры в событие инпута
+      row: 0, //Кол-во строк в отображаемом тексте
+      capsWarning: false, //Предупреждение о капсе
+      arrCorrectWords: [],
+      toDeleteWords: [], //Массив слов, которые будут убраны после изменения строки
+      lastRowWords: [], //Последние слова в каждой из строк
+      isLetterLimit: false, //Лимит букв в слове
+      isEnd: false,
       currentTime: 0,
       timer: null,
-      isEnd: false,
-      rowHeight: 0,
-      caretPostionY: null, //более универсально если оно будет вычесляться в маунте
-      capsWarning: false,
-      arrCorrectWords: [],
     };
   },
-  mounted() {
-    this.shuffle();
-    this.words = words;
+  beforeMount() {
+    this.words = shuffle(words);
     this.clearClasses();
+    this.takeLastWordsInRow();
   },
   computed: {
-    wpm() {
-      return Math.floor(this.countCorrectWords / (5 / 60));
-    },
     ...mapState(useModeStore, ["timeCount"]),
     ...mapState(useModeStore, {
       modeStore: "mode",
     }),
-    testTime() {
+    time() {
       return this.timeCount;
     },
   },
   watch: {
-    wordsCount() {
-      this.words = words;
-      this.clearClasses();
+    words() {
+      this.takeLastWordsInRow();
     },
     //каретка
     currentLetter(oldVal) {
-      try {
-        let word = this.words[this.currentWord];
-        word.letters[this.currentLetter] &&
-          (word.letters[this.currentLetter].class += " caret");
-        word.letters[oldVal] && (word.letters[oldVal].class += " ");
-      } catch {}
+      let word = this.words[this.currentWord];
+
+      word.letters[this.currentLetter] &&
+        (word.letters[this.currentLetter].class += " caret");
+
+      word.letters[oldVal] && (word.letters[oldVal].class += " ");
+
+      if (
+        word.letters[word.letters.length] === word.letters[this.currentLetter]
+      ) {
+        word.letters[word.letters.length - 1].class += " lastCaret";
+      }
     },
     currentTime(time) {
       if (time === 0) this.stopTimer();
@@ -65,20 +68,41 @@ export default {
     timeCount() {
       this.restart();
     },
-    //строка опускается взависимости от позиции картеки
-    caretPostionY() {
-      if (this.caretPostionY) {
-        if (this.caretPostionY > 440) {
-          this.rowHeight += 32;
-        }
+    //Если лимит пропадает, то его класс тоже
+    isLetterLimit() {
+      if (this.words[this.currentWord].class.indexOf("limit") !== -1) {
+        this.words[this.currentWord].class = this.words[
+          this.currentWord
+        ].class.slice(0, this.words[this.currentWord].class.indexOf("limit"));
       }
     },
   },
   methods: {
+    //Берет последние слова в каждой строке
+    async takeLastWordsInRow() {
+      await nextTick();
+      const takedWords = document.querySelectorAll(".typeframe-words_word");
+      let yPosDefault = takedWords[0].getBoundingClientRect().y;
+      takedWords.forEach((element, index) => {
+        const yPosElement = element.getBoundingClientRect().y;
+
+        if (yPosElement > yPosDefault) {
+          this.lastRowWords.push(this.words[index - 1]);
+          yPosDefault = yPosElement;
+        }
+      });
+    },
+    //Обрезание строки, первой в отображении
+    trimRow() {
+      this.toDeleteWords.pop();
+      const newWords = new Set(this.toDeleteWords);
+      this.words = this.words.filter((e) => !newWords.has(e));
+      this.currentWord = 0;
+    },
     //старт теста, срабатывает единожды, при рестарте обновляется
     start() {
       this.isStart = true;
-      this.currentTime = this.testTime;
+      this.currentTime = this.time;
       this.startTimer();
       //необходимо чтобы отрабатывало только 1 раз
       this.start = function () {
@@ -87,18 +111,20 @@ export default {
     },
     //рестарт теста
     async restart() {
-      this.currentTime = this.testTime;
+      clearTimeout(this.timer);
+      this.currentTime = this.time;
       this.timer = null;
+      this.isEnd = false, 
       this.currentWord = 0;
       this.currentLetter = 0;
-      this.arrCorrectWords = [];
       this.countCorrectWords = 0;
-      this.accurancy = 0;
+      this.arrCorrectWords = [];
+      this.toDeleteWords = [];
+      this.lastRowWords = [];
       this.text = "";
-      this.isEnd = false;
+      this.row = 0;
+      this.isLetterLimit = false;
       this.isStart = false;
-      this.rowHeight = 0;
-      this.caretPostionY = null;
       this.start = this.start = function () {
         this.isStart = true;
         this.startTimer();
@@ -106,24 +132,32 @@ export default {
           return false;
         };
       };
-      this.words = words;
-      this.shuffle();
+      this.words = shuffle(words);
       this.clearClasses();
 
       //Решает проблему с фокусом в инпут
       await nextTick();
       this.$refs.focusRef.focus();
-    },
-    //Пермешивание массива
-    shuffle() {
-      const randomWords = this.words.sort(() => 0.5 - Math.random());
-      this.words = randomWords;
+      
+      this.takeLastWordsInRow();
     },
     //переключает слово вперед
     nextWord() {
+      const lastLetter =
+        this.words[this.currentWord].letters[
+          this.words[this.currentWord].letters.length - 1
+        ];
+
+      if (lastLetter.class.indexOf("lastCaret") !== -1) {
+        lastLetter.class = lastLetter.class.slice(
+          0,
+          lastLetter.class.indexOf("lastCaret")
+        );
+      }
       this.currentWord++;
       this.text = "";
       this.currentLetter = 0;
+      this.isLetterLimit = false;
     },
     //отработка с нажатия клавиш
     checkWord(e) {
@@ -132,20 +166,35 @@ export default {
 
       const word = this.words[this.currentWord];
 
+      this.toDeleteWords.push(word);
+
       if (e.code === "Space") {
-        const inputValue = e.target.value;
-        const isCorrect = inputValue === word.text;
+        const isCorrect = e.target.value === word.text;
         const isIncorrect =
-          inputValue.length === word.text.length && !isCorrect;
+          e.target.value.length === word.text.length && !isCorrect;
+        const isLastWord = word == this.lastRowWords[this.row];
 
         if (isCorrect) {
           word.class = "correctWord";
           this.countCorrectWords++;
           this.arrCorrectWords.push(word);
+
           this.nextWord();
+
+          //Проверка последного слова в строке
+          if (isLastWord) {
+            this.trimRow();
+            this.row++;
+          }
         } else if (isIncorrect) {
           word.class = "incorrectWord";
           this.nextWord();
+
+          //Проверка последного слова в строке
+          if (isLastWord) {
+            this.trimRow();
+            this.row++;
+          }
         }
 
         e.preventDefault();
@@ -155,45 +204,62 @@ export default {
     checkLetter(e) {
       this.start();
 
-      let caret = document.querySelector(".caret");
-      this.caretPostionY = caret
-        ? Math.round(caret.getBoundingClientRect().y)
-        : 440;
-
-      const input = e.target.value;
+      let input = e.target.value;
       const word = this.words[this.currentWord].letters[this.currentLetter];
 
+      // Отбработка в случае лимита букв
+      if (this.isLetterLimit) {
+        let slicedText = "";
+        slicedText = this.text.slice(
+          0,
+          this.words[this.currentWord].text.length
+        );
+        this.text = slicedText;
+
+        if (this.words[this.currentWord].class.indexOf("limit") === -1) {
+          this.words[this.currentWord].class += " limit";
+        }
+      }
+      //Нажатие на backspace
       if (this.keyEvent.code === "Backspace") {
         if (this.currentLetter > 0) {
           this.words[this.currentWord].letters[this.currentLetter - 1].class =
             "";
           if (word) word.class = "";
           this.currentLetter--;
+          this.isLetterLimit = false;
         }
-      } else if (input.length > this.words[this.currentWord].text.length) {
-        this.nextWord();
+        //Определение верного симбвола (буквы)
       } else {
-        if (input[this.currentLetter] === word.letter) {
-          word.class = "correctLetter";
-          this.currentLetter++;
-        } else {
-          word.class = "incorrectLetter";
-          this.currentLetter++;
+        if (!this.isLetterLimit) {
+          if (input[this.currentLetter] === word.letter) {
+            word.class = "correctLetter";
+            this.currentLetter++;
+          } else {
+            word.class = "incorrectLetter";
+            this.currentLetter++;
+          }
         }
+      }
+      //Когда есть лимит, он дается
+      if (
+        input.length + 1 > this.words[this.currentWord].text.length &&
+        !this.isLetterLimit
+      ) {
+        this.isLetterLimit = true;
       }
     },
     //при фокусе и блюре, показывает окно расфокуса
     focusImport() {
-      //желательно чтобы и при клике то работало
-      let input = this.$refs.focusRef;
-      let isFocused = document.activeElement === input;
-      if (!isFocused && this.$refs.wordsRef) {
-        this.$refs.wordsRef.classList.add("blur");
-        this.$refs.wrapRef.classList.add("blur-text");
-      } else if (isFocused) {
-        this.$refs.wordsRef.classList.remove("blur");
-        this.$refs.wrapRef.classList.remove("blur-text");
-      }
+      const input = this.$refs.focusRef;
+
+      const isFocused = document.activeElement === input;
+
+      const wordsRef = this.$refs.wordsRef;
+      const wrapRef = this.$refs.wrapRef;
+
+      wordsRef?.classList.toggle("blur", !isFocused);
+      wrapRef?.classList.toggle("blur-text", !isFocused);
     },
     //зануление классов
     clearClasses() {
@@ -229,13 +295,7 @@ export default {
         <div v-show="isStart">{{ currentTime }}</div>
       </div>
       <div class="typeframe-wrapper" ref="wrapRef">
-        <div
-          class="typeframe-words"
-          ref="wordsRef"
-          :style="{
-            bottom: `${this.rowHeight}px`,
-          }"
-        >
+        <div class="typeframe-words" ref="wordsRef">
           <p
             :class="word.class"
             class="typeframe-words_word"
@@ -264,20 +324,127 @@ export default {
         v-model.trim="text"
         class="typeframe-input"
       />
+
+      <button @click="restart" class="typeframe-btn_restart">
+        <font-awesome-icon
+          icon="fa-solid fa-arrows-rotate"
+          color="#313641"
+          size="2x"
+        />
+      </button>
     </template>
 
     <Result
       v-if="isEnd"
       :arrCorrectWords="arrCorrectWords"
       :countCorrectWords="countCorrectWords"
-      :time="testTime"
-      :accurancy="accurancy"
+      :time="time"
       @restart="restart"
     />
   </div>
 </template>
 
 <style lang="scss" scoped>
+.lastCaret {
+  &::after {
+    content: "";
+    width: 2px;
+    top: 6px;
+    height: 26px;
+    background-color: #ec5028;
+    position: absolute;
+    animation: next 0.1s ease-out forwards;
+  }
+}
+ul {
+  color: #ec5028;
+}
+.word {
+  position: relative;
+  padding-left: 10px;
+  font-size: 24px;
+}
+
+.limit {
+  animation: shake 0.5s infinite;
+
+  @keyframes shake {
+    0% {
+      transform: translate(1px, 1px) rotate(0deg);
+    }
+    10% {
+      transform: translate(-1px, -2px) rotate(-1deg);
+    }
+    20% {
+      transform: translate(-3px, 0px) rotate(1deg);
+    }
+    30% {
+      transform: translate(3px, 2px) rotate(0deg);
+    }
+    40% {
+      transform: translate(1px, -1px) rotate(1deg);
+    }
+    50% {
+      transform: translate(-1px, 2px) rotate(-1deg);
+    }
+    60% {
+      transform: translate(-3px, 1px) rotate(0deg);
+    }
+    70% {
+      transform: translate(3px, 1px) rotate(-1deg);
+    }
+    80% {
+      transform: translate(-1px, -1px) rotate(1deg);
+    }
+    90% {
+      transform: translate(1px, 2px) rotate(0deg);
+    }
+    100% {
+      transform: translate(1px, -2px) rotate(-1deg);
+    }
+  }
+}
+
+@keyframes loop {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes next {
+  0% {
+    transform: translate(-10px, 0px);
+  }
+  100% {
+  }
+}
+.caret {
+  &_first {
+    &::before {
+      content: "";
+      width: 2px;
+      top: 6px;
+      height: 26px;
+      background-color: #ec5028;
+      position: absolute;
+      animation: loop 1s infinite;
+      animation-direction: alternate;
+    }
+  }
+
+  &::before {
+    content: "";
+    width: 2px;
+    top: 6px;
+    height: 26px;
+    background-color: #ec5028;
+    position: absolute;
+    animation: next 0.1s ease-out forwards;
+  }
+}
 .correctWord {
   color: white !important ;
 }
@@ -286,6 +453,7 @@ export default {
 }
 .incorrectWord {
   color: rgb(183, 241, 8) !important;
+  text-decoration: underline red 1px;
 }
 .correctLetter {
   color: #ec5028;
@@ -302,14 +470,13 @@ export default {
   &::after {
     content: "press Tab to focus";
     position: relative;
-    bottom: 650px;
-    right: 200px;
+    right: 40%;
+    bottom: 0;
     z-index: 21;
     font-weight: 500;
     color: #ec5028;
     font-size: 30px;
     width: 600px;
-    height: 90px;
   }
 }
 .typeframe {
@@ -343,11 +510,11 @@ export default {
     font-size: 20px;
     height: 20px;
   }
-
   &-wrapper {
     height: 96px;
     overflow: hidden;
   }
+
   &-words {
     font-size: 18px;
     width: 650px;
@@ -376,37 +543,17 @@ export default {
     border-radius: 15px;
     color: white;
   }
-}
-.caret {
-  &_first {
-    &::before {
-      content: "";
-      width: 2px;
-      top: 6px;
-      height: 26px;
-      background-color: #ec5028;
-      position: absolute;
-      animation: next 1s infinite;
-      animation-direction: alternate;
+  &-btn_restart {
+    outline: none;
+    border: none;
+    background: transparent;
+    padding: 5px 15px;
+    border-radius: 5px;
+    font-size: 20px;
+    margin-left: 40%;
+    &:focus {
+      border: #ec5028 1px solid;
     }
-
-    @keyframes next {
-      from {
-        opacity: 0;
-      }
-      to {
-        opacity: 1;
-      }
-    }
-  }
-
-  &::before {
-    content: "";
-    width: 2px;
-    top: 6px;
-    height: 26px;
-    background-color: #ec5028;
-    position: absolute;
   }
 }
 </style>
